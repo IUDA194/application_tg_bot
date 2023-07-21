@@ -22,8 +22,7 @@ class applicateion_bot(StatesGroup):
 
 @dp.message_handler(commands=["start"])
 async def start_command(message : types.Message):
-    db_ansver = await db.insert_user(message.from_user.id)
-    if db_ansver["status"]:
+    if message:
         await bot.send_message(message.from_user.id, """Привет!
             
 <b>Оставь свою заявку!:</b>""")
@@ -35,11 +34,11 @@ async def start_command(message : types.Message):
 async def start_command(message : types.Message):
     if ADMINS_ID:
         for admin in ADMINS_ID:
-            await bot.send_message(admin, f"""Заявка от пользователя @{message.from_user.username}
-
-{message.text}
-
+            info_message = await bot.send_message(admin, f"""Заявка от пользователя @{message.from_user.username}
+                                   
 <i>Дата: {datetime.datetime.now()}</i>""")
+            
+            await message.forward(admin)
 
 
 @dp.message_handler(commands=["admin"])
@@ -52,7 +51,6 @@ async def start_command(message : types.Message):
 
 #Функция которая запускается со стартом бота
 async def on_startup(_):
-    await db.connect_to_db()
     print('bot online')
 #Пулинг бота
 executor.start_polling(dp,skip_updates=True, on_startup=on_startup) #Пуллинг бота
