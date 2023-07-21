@@ -40,16 +40,16 @@ async def start_command(message : types.Message):
         await message.reply("Отправьте свою контактную информацию:")
         await applicateion_bot.contact.set()
 
-@dp.message_handler(state=applicateion_bot.text)
+@dp.message_handler(state=applicateion_bot.contact)
 async def start_command(message : types.Message, state : FSMContext):
     if ADMINS_ID:
         for admin in ADMINS_ID:
-            await bot.send_message(admin, f"""Заявка пользователя {message.from_user.id}
+            f_message = await storage[message.from_user.id].forward(admin)
+            await f_message.reply(f"""Заявка пользователя {message.from_user.username}
 
 С контактной информацией: {message.text}
 
 Дата: {datetime.datetime.now()}""")
-            await storage[message.from_user.id].forward(admin)
         await message.reply("Спасибо! Ваша заявка отправленна!")
         await state.finish()
 
