@@ -22,8 +22,7 @@ class applicateion_bot(StatesGroup):
 
 @dp.message_handler(commands=["start"])
 async def start_command(message : types.Message):
-    db_ansver = await db.insert_user(message.from_user.id)
-    if db_ansver["status"]:
+    if message:
         await bot.send_message(message.from_user.id, """Привет!
             
 <b>Оставь свою заявку!:</b>""")
