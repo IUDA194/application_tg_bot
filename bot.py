@@ -51,7 +51,6 @@ async def start_command(message : types.Message):
 
 #Функция которая запускается со стартом бота
 async def on_startup(_):
-    await db.connect_to_db()
     print('bot online')
 #Пулинг бота
 executor.start_polling(dp,skip_updates=True, on_startup=on_startup) #Пуллинг бота
