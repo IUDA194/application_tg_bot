@@ -19,11 +19,11 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 class applicateion_bot(StatesGroup):
     text = State()
+    contact = State()
 
 @dp.message_handler(commands=["start"])
 async def start_command(message : types.Message):
-    db_ansver = await db.insert_user(message.from_user.id)
-    if db_ansver["status"]:
+    if message:
         await bot.send_message(message.from_user.id, """Привет!
             
 <b>Оставь свою заявку!:</b>""")
@@ -31,16 +31,27 @@ async def start_command(message : types.Message):
     else: await bot.send_message("Что-то пошло не так")
     await message.delete()
 
+storage = {}
+
 @dp.message_handler(state=applicateion_bot.text)
 async def start_command(message : types.Message):
     if ADMINS_ID:
+        storage[message.from_user.id] = message
+        await message.reply("Отправьте свою контактную информацию:")
+        await applicateion_bot.contact.set()
+
+@dp.message_handler(state=applicateion_bot.text)
+async def start_command(message : types.Message, state : FSMContext):
+    if ADMINS_ID:
         for admin in ADMINS_ID:
-            await bot.send_message(admin, f"""Заявка от пользователя @{message.from_user.username}
+            await bot.send_message(admin, f"""Заявка пользователя {message.from_user.id}
 
-{message.text}
+С контактной информацией: {message.text}
 
-<i>Дата: {datetime.datetime.now()}</i>""")
-
+Дата: {datetime.datetime.now()}""")
+            await storage[message.from_user.id].forward(admin)
+        await message.reply("Спасибо! Ваша заявка отправленна!")
+        await state.finish()
 
 @dp.message_handler(commands=["admin"])
 async def start_command(message : types.Message):
@@ -52,10 +63,9 @@ async def start_command(message : types.Message):
 
 #Функция которая запускается со стартом бота
 async def on_startup(_):
-    await db.connect_to_db()
     print('bot online')
 #Пулинг бота
-executor.start_polling(dp,skip_updates=True, on_startup=on_startup) #Пуллинг бота
+executor.start_polling(dp, skip_updates=True, on_startup=on_startup) #Пуллинг бота
 
 #Вывод уведомления про отключение бота
 print("Bot offline")
